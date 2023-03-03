@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)http://127.0.0.1:5500/List%20create-and%20edit/list-create.html -->
+<html lang="en">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <style>
+      table {
+        width: 100%;
+        border: 1px solid red
+      }
+
+      th {
+        background-color: rgb(243, 201, 172);
+      }
+
+      tr:nth-child(even) {
+        background-color: rgb(235, 232, 232);
+      }
+
+      th,
+      td,
+      tr {
+        text-align: center;
+        border: 1px solid red;
+      }
+    </style>
+
+    <title>List of fUser1</title>
+  </head>
+
+  <body>
+
+    <div>
+      <!-- Button trigger modal -->
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Create contact
+      </button>
+
+      <!-- Modal -->
+
+      <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-body">
+              <form id="submitForm">
+                <div>
+                  <label for="name">first_name</label>
+                  <input type="text" name="name" id="name" />
+                </div>
+                <div>
+                  <input type="radio" name="gender" class="gender" value="Male" />Male
+                  <input type="radio" name="gender" class="gender" value="Female" />Female
+                </div>
+                <div>
+                  <select name="active" id="active">State
+                    <option value="active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="email">Email</label>
+                  <input type="email" name="email" id="email" />
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary">Close</button>
+                  <button type="submit" class="btn btn-primary" id="submit" data-bs-dismiss="modal">Create
+                    Contact</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- **********************Apend data from input feild to Table************************* -->
+      <!-- <button id="edit_infeild">Edit</button> -->
+      <table id="table-data">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>email</th>
+            <th>State</th>
+            <th>Edit</th>
+          </tr>
+        </thead>
+        <tbody id="tableData">
+        </tbody>
+      </table>
+    </div>
+
+
+    <script>
+      var data;
+      function getData() {
+        $.ajax({
+          type: "GET",
+          url: "https://gorest.co.in/public/v2/users",
+          dataType: "json",
+          headers: {
+            "Authorization": "Bearer 8a812bd9cd0d9a30345b99339b7420704442d8c9e927a55042995ce1d0fd528d",
+            "Content-Type": "application/json"
+          },
+          success: function (data) {
+            data.forEach((element) => {
+              $("#tableData").append(`<tr id="edit_row${element.id}"><td>${element.id}</td>
+                <td>${element.name}</td >
+                  <td>${element.gender}</td >
+                    <td>${element.email}</td >
+                      <td>${element.status}</td >
+                        <td><button id="edit_data${element.id}" onclick="editData(${element.id})">edit</button></td >
+                      <td><input type="text" style="display: none;" name="email" placeholder="email" id="editEmail${element.id}"></td>
+                    </tr>`)
+            })
+          }
+        });
+      }
+
+      function IsEmail(newEmail) {
+        var regex = /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/;
+        return regex.test(newEmail)
+      }
+      function updateData(id, newEmail) {
+        fetch(`https://gorest.co.in/public/v2/users/${id}`,
+          {
+            method: 'PUT',
+            headers: {
+              "Authorization": "Bearer 8a812bd9cd0d9a30345b99339b7420704442d8c9e927a55042995ce1d0fd528d",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email: newEmail })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+            $("#tableData").empty();
+            getData();
+          })
+      }
+      function editData(id) {
+        $(`#edit_row${id} td > #editEmail${id}`).css('display', "block");
+        $(`#edit_row${id} td > #editEmail${id}`).keypress(function (event) {
+          let newEmail = $(`#edit_row${id} td > #editEmail${id}`).val()
+          if (event.keyCode == "13") {
+            if (!IsEmail(newEmail)) {
+              alert("Invalid email");
+              return false
+            }
+            else {
+              updateData(id, newEmail)
+            }
+          }
+        });
+      };
+
+      $(document).ready(() => {
+        getData();
+        $("#submitForm").submit(function (event) {
+          event.preventDefault();
+          // alert("hiii");
+          var name = $("#name").val();
+          var gender = $('input[name="gender"]:checked').val();
+          var active = $("#active").val();
+          var email = $("#email").val();
+
+          const data = {
+            name: name,
+            gender: gender,
+            email: email,
+            status: active
+          }
+          $.ajax({
+            type: "POST",
+            url: "https://gorest.co.in/public/v2/users",
+            data: JSON.stringify(data),
+            dataType: "json",
+            headers: {
+              "Authorization": "Bearer 8a812bd9cd0d9a30345b99339b7420704442d8c9e927a55042995ce1d0fd528d",
+              "Content-Type": "application/json"
+            },
+            success: function (data) {
+              // console.log("create data", data);
+              $("#tableData").empty();
+              getData()
+            }
+          });
+        });
+      })
+    </script>
+  </body>
+
+</html>
