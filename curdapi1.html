@@ -19,6 +19,13 @@
         border: 1px solid red
       }
 
+      button {
+        border: none;
+        border-radius: 8px;
+        background-color: bisque;
+        padding: 0 15px;
+      }
+
       th {
         background-color: rgb(243, 201, 172);
       }
@@ -30,11 +37,19 @@
       th,
       td,
       tr {
+        padding: 5px;
         text-align: center;
         border: 1px solid red;
       }
-    </style>
 
+      .redbtn {
+        background-color: rgb(192, 49, 49);
+      }
+
+      .extra-margin {
+        margin: 20px;
+      }
+    </style>
     <title>List of fUser1</title>
   </head>
 
@@ -42,7 +57,7 @@
 
     <div>
       <!-- Button trigger modal -->
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+      <button type="button" class="btn btn-primary extra-margin" data-bs-toggle="modal" data-bs-target="#exampleModal">
         Create contact
       </button>
 
@@ -82,7 +97,6 @@
         </div>
       </div>
       <!-- **********************Apend data from input feild to Table************************* -->
-      <!-- <button id="edit_infeild">Edit</button> -->
       <table id="table-data">
         <thead>
           <tr>
@@ -91,7 +105,7 @@
             <th>Gender</th>
             <th>email</th>
             <th>State</th>
-            <th>Edit</th>
+            <th colspan="3">Action</th>
           </tr>
         </thead>
         <tbody id="tableData">
@@ -118,6 +132,7 @@
                   <td>${element.gender}</td >
                     <td>${element.email}</td >
                       <td>${element.status}</td >
+                        <td><button id="delete_data${element.id}" class="redbtn" onclick="deleteData(${element.id})">Delete</button></td >
                         <td><button id="edit_data${element.id}" onclick="editData(${element.id})">edit</button></td >
                       <td><input type="text" style="display: none;" name="email" placeholder="email" id="editEmail${element.id}"></td>
                     </tr>`)
@@ -142,7 +157,6 @@
           })
           .then(response => response.json())
           .then(data => {
-            console.log(data);
             $("#tableData").empty();
             getData();
           })
@@ -162,12 +176,30 @@
           }
         });
       };
+      function deleteData(id) {
+        fetch(`https://gorest.co.in/public/v2/users/${id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              "Authorization": "Bearer 8a812bd9cd0d9a30345b99339b7420704442d8c9e927a55042995ce1d0fd528d",
+              "Content-Type": "application/json"
+            },
+          })
+          .then(response => {
+            if (response !== -1) {
+              $("#tableData").empty();
+              getData();
+            } else {
+              console.error('Error deleting data');
+            }
+          })
+
+      }
 
       $(document).ready(() => {
         getData();
         $("#submitForm").submit(function (event) {
           event.preventDefault();
-          // alert("hiii");
           var name = $("#name").val();
           var gender = $('input[name="gender"]:checked').val();
           var active = $("#active").val();
@@ -189,7 +221,6 @@
               "Content-Type": "application/json"
             },
             success: function (data) {
-              // console.log("create data", data);
               $("#tableData").empty();
               getData()
             }
